@@ -125,12 +125,12 @@ def make_lammpsdata():
   for i in range(ntot):
     for j in range(ntot):
       if i == j: continue
-      dfx = abs(float(fc[j][0]) - float(fc[i][0]))
-      if dfx > 0.5*mul[0]: dfx = mul[0] - dfx
-      dfy = abs(float(fc[j][1]) - float(fc[i][1]))
-      if dfy > 0.5*mul[1]: dfy = mul[1] - dfy   
-      dfz = abs(float(fc[j][2]) - float(fc[i][2]))
-      if dfz > 0.5*mul[2]: dfz = mul[2] - dfz  
+      dfx = float(fc[j][0]) - float(fc[i][0])
+      if abs(dfx) > 0.5*mul[0]: dfx = dfx - np.sign(dfx)*mul[0]
+      dfy = float(fc[j][1]) - float(fc[i][1])
+      if abs(dfy) > 0.5*mul[1]: dfy = dfy - np.sign(dfy)*mul[1]
+      dfz = float(fc[j][2]) - float(fc[i][2])
+      if abs(dfz) > 0.5*mul[2]: dfz = dfz - np.sign(dfz)*mul[2]
       dx = dfx*cel[0][0] + dfy*cel[1][0] + dfz*cel[2][0]
       dy = dfx*cel[0][1] + dfy*cel[1][1] + dfz*cel[2][1]
       dz = dfx*cel[0][2] + dfy*cel[1][2] + dfz*cel[2][2]

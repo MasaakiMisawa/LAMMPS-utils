@@ -151,10 +151,10 @@ def make_lammpsdata():
       lolap = 0
       for k in range(cnt):
         if fc[k] != 0:
-          dx = abs(fc[k][0] - tmpf[0]); dy = abs(fc[k][1] - tmpf[1]); dz = abs(fc[k][2] - tmpf[2])
-          if dx >= 0.5: dx = 1.0 - dx
-          if dy >= 0.5: dy = 1.0 - dy
-          if dz >= 0.5: dz = 1.0 - dz
+          dx = fc[k][0] - tmpf[0]; dy = fc[k][1] - tmpf[1]; dz = fc[k][2] - tmpf[2]
+          if abs(dx) > 0.5: dx = dx - np.sign(dx)*1.0
+          if abs(dy) > 0.5: dy = dy - np.sign(dy)*1.0
+          if abs(dz) > 0.5: dz = dz - np.sign(dz)*1.0
           dr = np.sqrt(dx*dx + dy*dy + dz*dz)
           if dr < 0.5/np.average([la, lb, lc]): lolap = 1
       if lolap == 0:

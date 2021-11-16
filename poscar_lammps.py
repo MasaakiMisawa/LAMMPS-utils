@@ -107,9 +107,9 @@ def make_lammpsdata():
   cnt = 0
   for i in range(sum(natom)):
     dat = rf.readline().split()
-    for iz in range(mul[0]):
+    for iz in range(mul[2]):
       for iy in range(mul[1]):
-        for ix in range(mul[2]):
+        for ix in range(mul[0]):
           fc[cnt] = [float(dat[0])+ix, float(dat[1])+iy, float(dat[2])+iz] 
           cnt = cnt + 1 
 

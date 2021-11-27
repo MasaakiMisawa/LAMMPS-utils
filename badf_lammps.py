@@ -1,7 +1,7 @@
 # badf_lammps.py ver.2021-11-27
 import numpy as np
 ###############################################################################################
-# Calculate Bond Angle Distribution Function (BADF).
+# Calculate normalized bond angle distribution function (BADF).
 # 	Input file: lammpstrj file
 # 	Output file: BADF_X-Y-Z.dat (X,Y,Z = atom names)
 ###############################################################################################
@@ -14,7 +14,7 @@ def badf_lammps():
 	skip_step    = 2
 
 	atom_names      = ['Mg', 'Si', 'O']
-	number_of_atoms = [ 384,  192, 768]
+	number_of_atoms = [384,  192,  768]
 	
 	cutoff_distance = [[0.0 for i in range(len(number_of_atoms))] for j in range(len(number_of_atoms))]
 	cutoff_distance[0][2] = 2.5 
@@ -23,7 +23,7 @@ def badf_lammps():
     # cutoff_distance[X][Y]: bond-cutoff distance of atom_names[X]-atom_names[Y] in (angstroms)
     #############################################################################################
 
-	delta_theta = 1   # in (degree)
+	delta_theta = 1.0   # in (degree)
 #################
 
 	rad = 180.0/np.arccos(-1.0)
@@ -35,11 +35,16 @@ def badf_lammps():
 	for i in range(number_of_type):
 		for j in range(number_of_atoms[i]):
 			typeindex.append(i)
-	angle_types = number_of_type*number_of_type*number_of_type 
+	angle_types = 0
+	for t1 in range(number_of_type):
+		for t2 in range(number_of_type):
+			for t3 in range(t2, number_of_type):
+				angle_types = angle_types + 1 
 	fractional_coords = [[0, 0, 0] for i in range(sum(number_of_atoms))]
 	real_coords = [[0, 0, 0] for i in range(sum(number_of_atoms))]
-	angle = [i for i in range(0,181,delta_theta)]
-	badf = [[0 for i in range(0,181,delta_theta)] for j in range(angle_types)]
+	array_length = int(180/delta_theta) + 1
+	angle = [i*delta_theta for i in range(array_length)]
+	badf = [[0 for i in range(array_length)] for j in range(angle_types)]
 	rfile = open(filename, 'r')
 
 	while True:
@@ -89,8 +94,9 @@ def badf_lammps():
 			angle_index = -1
 			for t1 in range(number_of_type):
 				for t2 in range(number_of_type):
-					for t3 in range(number_of_type):
+					for t3 in range(t2, number_of_type):
 						angle_index = angle_index + 1
+						if sum(badf_tmp[angle_index])==0: continue
 						for i in range(len(angle)):
 							badf[angle_index][i] = badf[angle_index][i] + int(badf_tmp[angle_index][i])
 		if step + 1 > final_step: break
@@ -98,13 +104,13 @@ def badf_lammps():
 	angle_index = -1
 	for t1 in range(number_of_type):
 		for t2 in range(number_of_type):
-			for t3 in range(number_of_type):
+			for t3 in range(t2, number_of_type):
 				angle_index = angle_index + 1
 				if sum(badf[angle_index]) == 0: continue
-				total_angles = sum(badf[angle_index])
+				normal = sum(badf[angle_index])*delta_theta
 				wfile = open('BADF_%s-%s-%s.dat' %(atom_names[t2], atom_names[t1], atom_names[t3]), 'w')
 				for i in range(len(badf[angle_index])):
-					badf[angle_index][i] = badf[angle_index][i]/total_angles
+					badf[angle_index][i] = badf[angle_index][i]/normal
 				for i in range(len(angle)):
 					wfile.write('%6.1f, %6.4f\n' %(angle[i], badf[angle_index][i]))
 				wfile.close()
@@ -198,11 +204,12 @@ def bond_angle_DF(fractional_coords, cel_vectors, neighborlist, typeindex, angle
 	badf = [[0 for i in range(len(angle))] for j in range(number_of_types*number_of_types*number_of_types)]
 	for t1 in range(number_of_types):
 		for t2 in range(number_of_types):
-			for t3 in range(number_of_types):
+			for t3 in range(t2,number_of_types):
 				target_angle = [t2, t1, t3]
 				angle_index = angle_index + 1
 				for i in range(number_of_atoms):
 					if typeindex[i] != target_angle[1]: continue
+					if len(neighborlist[i]) < 2: continue
 					for j1 in range(len(neighborlist[i])):
 						for j2 in range(j1 + 1, len(neighborlist[i])):
 							n1 = neighborlist[i][j1]; n2 = neighborlist[i][j2]

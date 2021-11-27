@@ -1,4 +1,4 @@
-#poscar_lammps.py ver.2021.11.04
+#poscar_lammps.py ver.2021.11.16
 import numpy as np; import datetime
 
 # Description #######################################################################

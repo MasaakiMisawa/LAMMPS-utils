@@ -1,6 +1,5 @@
 # rdf_lammps.py ver.2021-11-28
 import numpy as np
-import modules as mm
 ###############################################################################################
 # Calculate radial distribution function (RDF).
 # 	Input file: lammpstrj file

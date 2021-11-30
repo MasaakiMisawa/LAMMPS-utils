@@ -1,4 +1,4 @@
-# badf_lammps.py ver.2021-11-27
+# badf_lammps.py ver.2021-11-30
 import numpy as np
 ###############################################################################################
 # Calculate normalized bond angle distribution function (BADF).
@@ -52,6 +52,7 @@ def badf_lammps():
 		dat = rfile.readline().split()
 		if len(dat) == 0: break
 		step = int(rfile.readline())
+		if step > final_step: break
 		target = False
 		if step >= initial_step and np.mod(step - initial_step, skip_step) == 0: target = True
 #read number of atoms
@@ -99,7 +100,6 @@ def badf_lammps():
 						if sum(badf_tmp[angle_index])==0: continue
 						for i in range(len(angle)):
 							badf[angle_index][i] = badf[angle_index][i] + int(badf_tmp[angle_index][i])
-		if step + 1 > final_step: break
 #dump ADF
 	angle_index = -1
 	for t1 in range(number_of_type):

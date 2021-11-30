@@ -1,4 +1,4 @@
-# rdf_lammps.py ver.2021-11-28
+# rdf_lammps.py ver.2021-11-30
 import numpy as np
 ###############################################################################################
 # Calculate radial distribution function (RDF).
@@ -44,6 +44,7 @@ def rdf_lammps():
 		dat = rfile.readline().split()
 		if len(dat) == 0: break
 		step = int(rfile.readline())
+		if step > final_step: break
 		target = False
 		if step >= initial_step and np.mod(step - initial_step, skip_step) == 0: target = True
 		rfile.readline()
@@ -83,7 +84,6 @@ def rdf_lammps():
 					if sum(rdf_tmp[gr_index])==0: continue
 					for i in range(len(radius)):
 						rdf[gr_index][i] = rdf[gr_index][i] + rdf_tmp[gr_index][i]
-		if step + 1 > final_step: break
 	gr_index = -1
 	for t1 in range(number_of_type):
 		for t2 in range(t1, number_of_type):

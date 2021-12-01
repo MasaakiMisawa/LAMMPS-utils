@@ -1,4 +1,4 @@
-# rdf_lammps.py ver.2021-11-30
+# rdf_lammps.py ver.2021-12-01
 import numpy as np
 ###############################################################################################
 # Calculate radial distribution function (RDF).
@@ -187,12 +187,14 @@ def radial_DF(fractional_coords, cel_vectors, typeindex, radius):
 	number_of_atoms = [0 for i in range(max(typeindex) + 1)]
 	for i in range(len(typeindex)): number_of_atoms[typeindex[i]] = number_of_atoms[typeindex[i]] + 1
 	fractional_distance = [0, 0, 0]; real_distance = [0, 0, 0]
+
 	for i in range(sum(number_of_atoms)-1):
 		for j in range(i+1,sum(number_of_atoms)):
+			fractional_distance = np.array(fractional_coords[j]) - np.array(fractional_coords[i])
 			for k in range(3):
-				fractional_distance[k] = fractional_coords[j][k] - fractional_coords[i][k]
-				if abs(fractional_distance[k]) > 0.5: fractional_distance[k] = fractional_distance[k] - np.sign(fractional_distance[k])*1.0
-				real_distance[k] = np.dot(fractional_distance[k], cel_vectors[:][k])
+				if abs(fractional_distance[k]) > 0.5: 
+					fractional_distance[k] = fractional_distance[k] - np.sign(fractional_distance[k])*1.0
+			real_distance = np.dot(cel_vectors.T, fractional_distance)
 			rij = np.linalg.norm(real_distance)
 			if rij <= max_r:
 				k = int((rij + (dr/2.0) - initial_r)/dr)  
@@ -204,4 +206,4 @@ def radial_DF(fractional_coords, cel_vectors, typeindex, radius):
 			
 	return rdf
 
-rdf_lammps()
+if __name__ == '__main__': rdf_lammps()

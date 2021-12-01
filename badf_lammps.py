@@ -1,4 +1,4 @@
-# badf_lammps.py ver.2021-11-30
+# badf_lammps.py ver.2021-12-01
 import numpy as np
 ###############################################################################################
 # Calculate normalized bond angle distribution function (BADF).
@@ -168,13 +168,8 @@ def get_fractionalcoords(real_coords, cel_vectors):
 
 def get_neighborlist(fractional_coords, cel_vectors, typeindex, cutoff_distances):
 	number_of_atoms = len(typeindex)
-	fractional_coords = tuple(fractional_coords)
-	cel_vectors = tuple(cel_vectors)
-	typeindex = tuple(typeindex)
-	cutoff_distances = tuple(cutoff_distances)
+	fractional_coords = np.array(fractional_coords)
 	neighborlist = [[] for i in range(number_of_atoms)]
-	fractional_distance = np.array([0.0, 0.0, 0.0])
-	real_distance = np.array([0.0, 0.0, 0.0])
 	cel_vectors = np.array(cel_vectors, dtype='float')
 	if len(fractional_coords) != number_of_atoms:
 		print('Error'); return -1 
@@ -184,13 +179,12 @@ def get_neighborlist(fractional_coords, cel_vectors, typeindex, cutoff_distances
 		print('Error'); return -1 
 	for i in range(number_of_atoms-1):
 		for j in range(i+1, number_of_atoms):
-			if cutoff_distances[typeindex[i]][typeindex[j]] == 0: continue
+			if cutoff_distances[typeindex[i]][typeindex[j]] == 0.0: continue
+			fractional_distance = fractional_coords[j] - fractional_coords[i]
 			for k in range(3):
-				fractional_distance[k] = fractional_coords[j][k] - fractional_coords[i][k]
 				if abs(fractional_distance[k]) > 0.5: 
-					fractional_distance[k] = fractional_distance[k] - np.sign(fractional_distance[k])*1.0
-			for k in range(3):
-				real_distance[k] = np.dot(fractional_distance,cel_vectors[:,k])
+					fractional_distance[k] = fractional_distance[k] - np.sign(fractional_distance[k])
+			real_distance = np.dot(cel_vectors.T, fractional_distance)
 			if np.linalg.norm(real_distance) <= cutoff_distances[typeindex[i]][typeindex[j]]:
 				neighborlist[i].append(j); neighborlist[j].append(i)
 	return neighborlist
@@ -200,6 +194,7 @@ def bond_angle_DF(fractional_coords, cel_vectors, neighborlist, typeindex, angle
 	number_of_types = max(typeindex) + 1
 	number_of_atoms = len(typeindex)
 	delta_theta = angle[1] - angle[0]
+	cel_vectors = np.array(cel_vectors, dtype='float')
 	angle_index = -1
 	badf = [[0 for i in range(len(angle))] for j in range(number_of_types*number_of_types*number_of_types)]
 	for t1 in range(number_of_types):
@@ -218,16 +213,16 @@ def bond_angle_DF(fractional_coords, cel_vectors, neighborlist, typeindex, angle
 							in1 = np.array(fractional_coords[n1]) - np.array(fractional_coords[i])
 							for k in range(3):
 								if abs(in1[k]) > 0.5: in1[k] = in1[k] - np.sign(in1[k])*1.0
-							for k in range(3): np.dot(in1[k], cel_vectors[:,k])
+							in1 = np.dot(cel_vectors.T, in1)
 							in2 = np.array(fractional_coords[n2]) - np.array(fractional_coords[i])
 							for k in range(3):
 								if abs(in2[k]) > 0.5: in2[k] = in2[k] - np.sign(in2[k])*1.0
-							for k in range(3): np.dot(in2[k], cel_vectors[:,k])
-							theta = np.arccos(np.dot(in1,in2)/(np.linalg.norm(in1)*np.linalg.norm(in2)))*rad
-							for k in range(len(angle)):
-								if angle[k] - theta >= -delta_theta/2.0 and angle[k] - theta < delta_theta/2.0:
-									badf[angle_index][k] = badf[angle_index][k] + 1
-									break
+							in2 = np.dot(cel_vectors.T, in2)
+							theta = np.dot(in1,in2)/(np.linalg.norm(in1)*np.linalg.norm(in2))
+							if abs(theta) > 1.0: theta = np.sign(theta) 
+							theta = np.arccos(theta)*rad
+							badf[angle_index][int((theta + delta_theta/2.0)/delta_theta)] = badf[angle_index][int((theta + delta_theta/2.0)/delta_theta)] + 1
+
 	return badf
 
-badf_lammps()
+if __name__ == '__main__': badf_lammps()

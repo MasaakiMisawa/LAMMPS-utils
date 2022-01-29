@@ -189,20 +189,24 @@ def radial_DF(fractional_coords, cel_vectors, typeindex, radius):
 	fractional_distance = [0, 0, 0]; real_distance = [0, 0, 0]
 
 	for i in range(sum(number_of_atoms)-1):
-		for j in range(i+1,sum(number_of_atoms)):
+		for j in range(i+1, sum(number_of_atoms)):
 			fractional_distance = np.array(fractional_coords[j]) - np.array(fractional_coords[i])
 			for k in range(3):
 				if abs(fractional_distance[k]) > 0.5: 
 					fractional_distance[k] = fractional_distance[k] - np.sign(fractional_distance[k])*1.0
 			real_distance = np.dot(cel_vectors.T, fractional_distance)
 			rij = np.linalg.norm(real_distance)
-			if rij <= max_r:
+			if rij <= max_r + dr/2.0:
 				k = int((rij + (dr/2.0) - initial_r)/dr)  
 				#deno = 4.0*np.arccos(-1.0)*(radius[k]-(dr/2.0))*(radius[k]-(dr/2.0))*dr
 				deno = 4.0*np.arccos(-1.0)*radius[k]*radius[k]*dr # VMD definition
 				deno = deno*number_of_atoms[typeindex[i]]*number_of_atoms[typeindex[j]]/volume
-				rdf[rdf_index[typeindex[i]][typeindex[j]]][k] = rdf[rdf_index[typeindex[i]][typeindex[j]]][k] + 1/deno
-				rdf[rdf_index[typeindex[j]][typeindex[i]]][k] = rdf[rdf_index[typeindex[j]][typeindex[i]]][k] + 1/deno
+				if typeindex[i] < typeindex[j]:
+					rdf[rdf_index[typeindex[i]][typeindex[j]]][k] = rdf[rdf_index[typeindex[i]][typeindex[j]]][k] + 1/deno
+				elif typeindex[i] == typeindex[j]:
+					rdf[rdf_index[typeindex[i]][typeindex[j]]][k] = rdf[rdf_index[typeindex[i]][typeindex[j]]][k] + 2/deno
+				else: 
+					rdf[rdf_index[typeindex[j]][typeindex[i]]][k] = rdf[rdf_index[typeindex[j]][typeindex[i]]][k] + 1/deno
 			
 	return rdf
 

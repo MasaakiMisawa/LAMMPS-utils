@@ -158,9 +158,9 @@ def make_lammpsdata():
           dr = np.sqrt(dx*dx + dy*dy + dz*dz)
           if dr < 0.5/np.average([la, lb, lc]): lolap = 1
       if lolap == 0:
-        for iz in range(mul[0]):
+        for iz in range(mul[2]):
           for iy in range(mul[1]):
-            for ix in range(mul[2]):
+            for ix in range(mul[0]):
               fc[cnt] = [tmpf[0]+ix, tmpf[1]+iy, tmpf[2]+iz] 
               tlist.append(site_type[i])
               cnt = cnt + 1
